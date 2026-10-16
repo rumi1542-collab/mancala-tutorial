@@ -1,0 +1,890 @@
+<title>만칼라 튜토리얼</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+/* 레이아웃: 시작 화면(두 갈래 카드) → 학습 화면(탭 · 설명 · 판+구슬 보관함 · 상태줄 · 조작 버튼).
+   구슬은 판 위를 덮는 레이어에 절대 위치로 그려서 칸 사이를 날아다니게 한다. */
+:root{
+  --bg:#e7edef; --surface:#f5f8f9; --surface2:#dbe5e8; --fg:#18272d; --muted:#556a73; --line:#c4d1d6;
+  --accent:#0e6b70; --accent-fg:#ffffff; --accent-soft:#d3ebec;
+  --gold:#e7a400; --gold-fg:#2e2100; --gold-glow:rgba(231,164,0,.55);
+  --ok:#1b7f48; --ok-soft:#d6efe0; --warn:#b4501a; --warn-soft:#fbe4d6; --info-soft:#dfeaee;
+  --wood1:#dfb272; --wood2:#c48d46; --well-hi:#b9803a; --well-lo:#8f5f27;
+  --wood-ink:#3b2409; --wood-chip:#5a3a14; --wood-chip-fg:#fff3d9;
+  --tray:#d5e0e3; --tray-line:#a9bcc3;
+  --f-body:'Gowun Dodum','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-disp:'Jua','Gowun Dodum','Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1519; --surface:#172026; --surface2:#222f36; --fg:#e4edf0; --muted:#97adb6; --line:#2b3a42;
+    --accent:#52c4c6; --accent-fg:#05272a; --accent-soft:#123a3d;
+    --gold:#f3b630; --gold-fg:#2e2100; --gold-glow:rgba(243,182,48,.6);
+    --ok:#56c985; --ok-soft:#14331f; --warn:#f19a62; --warn-soft:#3a2315; --info-soft:#1b2a31;
+    --wood1:#b78a4f; --wood2:#9c6d33; --well-hi:#8d5f2a; --well-lo:#6a4318;
+    --tray:#1c282e; --tray-line:#385059;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --surface:#172026; --surface2:#222f36; --fg:#e4edf0; --muted:#97adb6; --line:#2b3a42;
+  --accent:#52c4c6; --accent-fg:#05272a; --accent-soft:#123a3d;
+  --gold:#f3b630; --gold-fg:#2e2100; --gold-glow:rgba(243,182,48,.6);
+  --ok:#56c985; --ok-soft:#14331f; --warn:#f19a62; --warn-soft:#3a2315; --info-soft:#1b2a31;
+  --wood1:#b78a4f; --wood2:#9c6d33; --well-hi:#8d5f2a; --well-lo:#6a4318;
+  --tray:#1c282e; --tray-line:#385059;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0; background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:16px; line-height:1.55;
+  word-break:keep-all; overflow-wrap:break-word; line-break:strict;
+  padding-block:10px 18px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#app{max-width:1040px;margin:0 auto}
+
+/* 상단 바 */
+.top{display:flex;align-items:center;gap:12px;min-height:36px;margin-bottom:6px}
+.brand{font-family:var(--f-disp);font-size:22px;letter-spacing:.01em}
+.crumb{color:var(--muted);font-size:14px}
+.back{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700}
+.back:hover{border-color:var(--accent)}
+
+/* 시작 화면 */
+.hero{display:grid;gap:10px;margin:14px 0 22px}
+.hero h1{font-family:var(--f-disp);font-weight:400;font-size:clamp(46px,10vw,84px);line-height:1;margin:0;text-wrap:balance}
+.hero p{max-width:34em;color:var(--muted);margin:0}
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.pick{display:grid;gap:12px;align-content:start;text-align:left;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;cursor:pointer;min-width:0}
+.pick:hover{border-color:var(--accent)}
+.pick h2{font-family:var(--f-disp);font-weight:400;font-size:28px;margin:0;line-height:1.15}
+.pick p{margin:0;color:var(--muted)}
+.pick .go{color:var(--accent);font-weight:700}
+.mini{display:grid;grid-template-columns:1.1fr repeat(6,1fr) 1.1fr;grid-template-rows:1fr 1fr;gap:4px;padding:8px;border-radius:12px;aspect-ratio:3.3/1;max-width:100%;
+  background:repeating-linear-gradient(95deg,rgba(120,70,20,.06) 0 2px,transparent 2px 7px),linear-gradient(180deg,var(--wood1),var(--wood2))}
+.mini .ms{grid-row:1/3;border-radius:999px;background:var(--well-lo);opacity:.8;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:1px;padding:2px}
+.mw{border-radius:50%;background:radial-gradient(circle at 50% 38%,var(--well-hi),var(--well-lo));display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:1px;padding:3px;min-width:0}
+.mw i,.ms i{width:30%;aspect-ratio:1}
+
+/* 구슬 색 (유리구슬) */
+.gl{background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.95) 0 10%,rgba(255,255,255,0) 26%),radial-gradient(circle at 50% 55%,var(--a),var(--b) 100%);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.22),0 2px 3px rgba(0,0,0,.35);border-radius:50%}
+.k0{--a:#2f66dd;--b:#14307d}.k1{--a:#3b46a8;--b:#141a52}.k2{--a:#22b3bd;--b:#0a5f68}.k3{--a:#d98a3a;--b:#7a3c0c}
+.k4{--a:#f3f9fd;--b:#9bb6c8}.k5{--a:#58b97d;--b:#176a3b}.k6{--a:#8fc4ff;--b:#3a78c4}.k7{--a:#c8642a;--b:#6b2a0c}
+
+/* 탭 */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:thin}
+.tabbtn{flex:1 0 auto;display:grid;text-align:left;padding:6px 12px;border:1px solid var(--line);background:var(--surface);border-radius:12px;cursor:pointer;min-width:max-content}
+.tabbtn small{font-size:12px;color:var(--muted);line-height:1.3}
+.tabbtn span{font-weight:700}
+.tabbtn.solo{place-items:center;text-align:center;padding:9px 16px}
+.tabbtn:hover{border-color:var(--accent)}
+.tabbtn[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.tabbtn[aria-selected="true"] small{color:inherit;opacity:.85}
+
+.info{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px 20px;margin:2px 0 10px}
+.info-text{flex:1 1 340px;min-width:0}
+#app.fit{max-width:min(1040px,max(600px,calc((100vh - 380px) / .32)))}
+.info h2{font-family:var(--f-disp);font-weight:400;font-size:clamp(22px,4vw,28px);margin:0 0 2px;line-height:1.25}
+.info p{margin:0;color:var(--muted);max-width:44em;font-size:15px;line-height:1.55;text-wrap:pretty}
+
+/* 판 */
+.stage{position:relative;isolation:isolate;display:grid;gap:8px}
+.board{
+  position:relative;display:grid;grid-template-columns:1.2fr repeat(6,1fr) 1.2fr;grid-template-rows:auto auto auto auto;
+  column-gap:clamp(4px,1.2vw,13px);row-gap:clamp(4px,1vw,8px);padding:clamp(8px,1.6vw,16px);border-radius:20px;
+  background:repeating-linear-gradient(95deg,rgba(120,70,20,.06) 0 2px,transparent 2px 7px),linear-gradient(180deg,var(--wood1),var(--wood2));
+  box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 2px 0 rgba(255,240,205,.35)
+}
+.board::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;background:rgba(70,38,8,.3);transform:translateX(-50%)}
+.cell{position:relative;min-width:0}
+.well{
+  appearance:none;border:0;padding:0;margin:0;display:block;width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 50% 36%,var(--well-hi),var(--well-lo));
+  box-shadow:inset 0 5px 10px rgba(50,25,0,.5),inset 0 -2px 3px rgba(255,225,170,.35)
+}
+.well.opp{cursor:default}
+.well:not(.opp):not(:disabled):hover{filter:brightness(1.1)}
+.well.hint{box-shadow:inset 0 5px 10px rgba(50,25,0,.5),0 0 0 3px var(--gold),0 0 16px 4px var(--gold-glow);animation:glow 1.25s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:inset 0 5px 10px rgba(50,25,0,.5),0 0 0 3px var(--gold),0 0 8px 1px var(--gold-glow)}50%{box-shadow:inset 0 5px 10px rgba(50,25,0,.5),0 0 0 4px var(--gold),0 0 24px 8px var(--gold-glow)}}
+.tag{
+  position:absolute;left:50%;top:0;transform:translate(-50%,-55%);z-index:8;padding:2px 9px;border-radius:999px;white-space:nowrap;pointer-events:none;
+  background:var(--gold);color:var(--gold-fg);font-weight:700;font-size:clamp(10px,1.7vw,13px);animation:tw 1.25s ease-in-out infinite
+}
+.tag::before{content:"✦ "}
+@keyframes tw{0%,100%{transform:translate(-50%,-55%) scale(1);filter:brightness(1)}50%{transform:translate(-50%,-85%) scale(1.07);filter:brightness(1.2)}}
+.store{
+  position:relative;border-radius:999px;min-height:0;
+  background:linear-gradient(90deg,var(--well-lo),var(--well-hi) 45%,var(--well-lo));
+  box-shadow:inset 0 6px 12px rgba(50,25,0,.5),inset 0 -2px 4px rgba(255,225,170,.35)
+}
+.flash{animation:flash 1.2s ease-out 1}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--gold),0 0 0 0 var(--gold-glow)}25%{box-shadow:0 0 0 5px var(--gold),0 0 28px 10px var(--gold-glow)}100%{box-shadow:0 0 0 0 transparent,0 0 0 0 transparent}}
+.lab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;text-align:center;line-height:1.15;color:var(--wood-ink);font-size:clamp(10px,1.7vw,14px)}
+.lab .pn b{font-size:1.2em}
+.cr{display:flex;align-items:center;gap:3px}
+.cnt{display:inline-block;min-width:1.9em;padding:1px 6px;border-radius:999px;background:var(--wood-chip);color:var(--wood-chip-fg);font-weight:700;font-variant-numeric:tabular-nums;text-align:center;font-size:clamp(11px,1.8vw,15px)}
+.step{display:none;flex-direction:column;gap:1px}
+.editable .step{display:flex}
+.stp{border:0;padding:0;width:clamp(16px,2.6vw,22px);height:clamp(11px,1.8vw,15px);line-height:1;font-size:clamp(7px,1.2vw,10px);background:var(--wood-chip);color:var(--wood-chip-fg);border-radius:4px;cursor:pointer}
+.stp:hover{filter:brightness(1.3)}
+@media (max-width:560px){
+  .cr{flex-direction:column}
+  .step{flex-direction:row;gap:2px}
+  .stp{width:18px;height:18px;font-size:9px}
+  .lab .pn i{display:none}
+}
+.tray{position:relative;height:clamp(40px,5.2vw,52px);border-radius:12px;background:var(--tray);border:2px dashed var(--tray-line)}
+.tray-l{position:absolute;left:14px;top:8px;font-size:13px;color:var(--muted)}
+.tray .cnt{position:absolute;right:12px;top:6px;background:var(--surface2);color:var(--fg)}
+
+/* 구슬 레이어 */
+.beads{position:absolute;inset:0;pointer-events:none;z-index:5}
+.bead{position:absolute;transition:left .34s cubic-bezier(.3,.7,.3,1),top .34s cubic-bezier(.3,.7,.3,1),width .3s,height .3s,transform .2s}
+.beads.instant .bead{transition:none}
+.bead.fly{z-index:3;transform:scale(1.25);filter:drop-shadow(0 6px 5px rgba(0,0,0,.35))}
+
+/* 팝업 */
+.popup{
+  position:absolute;left:50%;top:44%;z-index:30;width:min(86%,440px);transform:translate(-50%,-46%) scale(.94);opacity:0;pointer-events:none;
+  text-align:center;padding:20px 26px;border-radius:20px;background:var(--surface);color:var(--fg);border:3px solid var(--gold);
+  box-shadow:0 18px 40px rgba(0,0,0,.35);transition:opacity .22s,transform .22s
+}
+.popup.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.popup.sticky.show{pointer-events:auto}
+.popup[data-kind="capture"]{border-color:var(--accent)}
+.popup[data-kind="intro"]{border-color:var(--accent)}
+.popup[data-kind="warn"],.popup[data-kind="fail"]{border-color:var(--warn)}
+.popup[data-kind="warn"] .pt{font-size:clamp(19px,4vw,25px)}
+.scrim{position:absolute;inset:0;z-index:25;border-radius:22px;background:rgba(8,18,22,.38);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.show{opacity:1;pointer-events:auto}
+.popup[data-kind="success"]{border-color:var(--ok)}
+.popup[data-kind="end"]{border-color:var(--accent)}
+.pt{font-family:var(--f-disp);font-size:clamp(24px,5vw,36px);line-height:1.2;text-wrap:balance}
+.ps{margin-top:8px;color:var(--muted);white-space:pre-line;text-wrap:pretty;line-height:1.6}
+.pb{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.pb:empty{display:none}
+
+.status{margin-top:8px;padding:8px 14px;border-radius:12px;background:var(--info-soft);min-height:2.4em;font-size:15px;text-wrap:pretty}
+.status.ok{background:var(--ok-soft)}
+.status.warn{background:var(--warn-soft)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700}
+.btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:not(:disabled):hover{border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+
+/* n단계 */
+.nv{display:grid;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.panel h3{font-family:var(--f-disp);font-weight:400;font-size:20px;margin:0 0 8px}
+.panel p{margin:0 0 8px;color:var(--muted);text-wrap:pretty}
+.facts{display:flex;gap:10px;flex-wrap:wrap}
+.fact{flex:1 1 150px;padding:10px 12px;border-radius:12px;background:var(--info-soft)}
+.fact small{display:block;color:var(--muted)}
+.fact b{font-family:var(--f-disp);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.rng{display:flex;align-items:center;gap:12px}
+.rng label{font-weight:700;white-space:nowrap}
+.rng input{flex:1;min-width:0;accent-color:var(--accent)}
+.nv svg{display:block;width:100%;height:auto}
+.ax{stroke:var(--line);stroke-width:1}
+.tx{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.tx.b{fill:var(--fg)}
+.barr{fill:var(--accent)}
+.ln{fill:none;stroke:var(--accent);stroke-width:2}
+.dt{fill:var(--accent)}
+.piln{stroke:var(--warn);stroke-width:1.5;stroke-dasharray:5 4}
+.mk{fill:var(--gold);stroke:var(--surface);stroke-width:2}
+.soon{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);margin-left:6px;vertical-align:middle}
+.why h4{font-family:var(--f-disp);font-weight:400;font-size:18px;margin:0 0 6px;color:var(--fg)}
+.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:12px 0}
+.why-box{background:var(--info-soft);border-radius:12px;padding:12px 14px;min-width:0}
+.why-box p{margin:0 0 8px}
+.seqrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.chip{padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--fg);font-variant-numeric:tabular-nums;font-size:14px}
+.chip i{font-style:normal;color:var(--muted);margin-right:4px}
+.chain{padding:8px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums;line-height:1.7;overflow-wrap:anywhere}
+.chain b{color:var(--accent)}
+.tblwrap{overflow-x:auto;margin-bottom:8px}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+.tbl th,.tbl td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th{color:var(--muted);font-weight:400}
+.src{font-size:14px}
+.src a{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="app">
+  <header class="top">
+    <button class="back" id="homeBtn" type="button" hidden>← 처음으로</button>
+    <div class="brand">만칼라</div>
+    <span class="crumb" id="crumb"></span>
+  </header>
+
+  <section id="home">
+    <div class="hero">
+      <h1>만칼라</h1>
+      <p>구슬을 한 칸씩 옮기며 배우는 보드게임이에요. 규칙을 따라 해 보고, 혼자 하는 수 탐구로 이어 가요.</p>
+    </div>
+    <div class="picks">
+      <button class="pick" id="pickTut" type="button">
+        <div class="mini" id="miniTut" aria-hidden="true"></div>
+        <h2>튜토리얼</h2>
+        <p>기본 배치, 옮기기, 프리턴, 구슬 가져오기, 게임 종료까지 5단계로 규칙을 익혀요.</p>
+        <span class="go">시작하기 →</span>
+      </button>
+      <button class="pick" id="pickExp" type="button">
+        <div class="mini" id="miniExp" aria-hidden="true"></div>
+        <h2>1인 만칼라 수 탐구</h2>
+        <p>프리턴을 이어 가며 모든 구슬을 만칼라통에 넣어요. 단계가 올라갈수록 수열이 원주율과 만나요.</p>
+        <span class="go">탐구하기 →</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="play" hidden>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="단계 선택"></nav>
+    <div class="info">
+      <div class="info-text"><h2 id="infoT"></h2><p id="infoP"></p></div>
+      <div class="controls" id="nCtl" hidden>
+        <button class="btn primary" id="autoBtn" type="button"><svg viewBox="0 0 24 24"><path d="M7 4.5 19.5 12 7 19.5z"/></svg>자동 실행</button>
+        <button class="btn" id="pauseBtn" type="button" disabled><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>일시정지</button>
+      </div>
+      <div class="controls" id="controls">
+        <button class="btn" id="resetBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>초기화</button>
+        <button class="btn" id="undoBtn" type="button"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>되돌리기</button>
+        <button class="btn" id="redoBtn" type="button"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>다시 실행</button>
+      </div>
+    </div>
+
+    <div id="boardArea">
+      <div class="stage" id="stage">
+        <div class="tray" id="trayO"></div>
+        <div class="board" id="board"></div>
+        <div class="tray" id="tray"></div>
+        <div class="beads" id="beads"></div>
+        <div class="scrim" id="scrim"></div>
+        <div class="popup" id="popup" role="status" aria-live="polite">
+          <div class="pt" id="pTitle"></div><div class="ps" id="pSub"></div><div class="pb" id="pBtns"></div>
+        </div>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="nv" id="nview" hidden>
+      <div class="panel">
+        <div class="rng"><label for="nRange">n단계: <span id="nOut">6</span></label><input type="range" id="nRange" min="1" max="60" value="6"></div>
+      </div>
+      <div class="facts">
+        <div class="fact"><small>n번 주머니까지 쓰는 최소 구슬 수 a(n)</small><b id="fA">12</b></div>
+        <div class="fact"><small>n² ÷ a(n)</small><b id="fR">3.0000</b></div>
+        <div class="fact"><small>π와의 차이</small><b id="fD">0.1416</b></div>
+      </div>
+      <div class="panel">
+        <h3>n단계의 구슬 배치</h3>
+        <p id="seqText"></p>
+        <svg id="barSvg" viewBox="0 0 640 170" role="img" aria-label="n단계 배치의 주머니별 구슬 수"></svg>
+      </div>
+      <div class="panel">
+        <h3>n² ÷ a(n)이 π에 다가가는 모습</h3>
+        <svg id="ratioSvg" viewBox="0 0 640 250" role="img" aria-label="단계별 n² ÷ a(n) 그래프"></svg>
+      </div>
+      <div class="panel why">
+        <h3>왜 π일까요?</h3>
+        <p>프리턴만으로 구슬을 모두 넣으면서 n번 주머니까지 쓰려면, 구슬이 가장 적게는 몇 개 필요할까요? 그 개수를 a(n)이라고 하고 차례로 적으면 만칼라 수열이 돼요. 1단계부터 6단계까지 필요했던 구슬 1, 2, 4, 6, 10, 12개가 a(1)부터 a(6)이에요.</p>
+        <p>이 수열은 1인용 만칼라인 추카이옹(Tchoukaillon)에서 나왔고, 1958년 에르되시와 자보틴스키가 연구한 수열과 같아요. 그래서 에르되시 수열이라고 부르기도 해요.</p>
+        <div class="seqrow" id="seqChips"></div>
+        <div class="why-grid">
+          <div class="why-box">
+            <h4>1. 직접 계산해 보기</h4>
+            <p>n에서 시작해요. n−1의 배수가 되도록 올림하고, 다시 n−2의 배수가 되도록 올림하고, 이렇게 1의 배수까지 올림해요. 마지막에 남는 수가 a(n)이에요.</p>
+            <div class="chain"><b id="chainN"></b> <span id="chain"></span></div>
+          </div>
+          <div class="why-box">
+            <h4>2. n이 커지면</h4>
+            <div class="tblwrap"><table class="tbl"><thead><tr><th>n</th><th>a(n)</th><th>n² ÷ a(n)</th><th>π와의 차이</th></tr></thead><tbody id="whyTbl"></tbody></table></div>
+            <p>n²÷a(n)은 π(3.14159…)에 다가가요. 다만 천천히 다가가서 n=100에서도 3.09 정도예요.</p>
+          </div>
+        </div>
+        <h4>3. 왜 하필 π일까요?</h4>
+        <p>한 줄로 말할 수 있는 이유는 없어요. 올림을 되풀이할 때 구슬 수가 얼마나 늘어나는지를 정밀하게 따져야 해요. 늘어난 양을 모두 합친 값 a(n)이 n²÷π에 가깝다는 결과가 알려져 있어요. 원이 없는 구슬 게임에서 원주율이 나오는 점이 이 수열의 놀라운 부분이에요.</p>
+        <p>에르되시와 자보틴스키는 이 근사가 얼마나 정확한지에 대한 추측을 남겼어요. 1995년 브롤라인과 로브가 증명했다고 발표했지만, 2021년 크누스가 그 증명에 오류가 있다고 지적했어요. 오차의 정확한 크기는 지금도 다듬어지고 있는 주제예요.</p>
+        <p class="src">참고: <a href="https://oeis.org/A002491" target="_blank" rel="noopener">OEIS A002491</a> · <a href="https://arxiv.org/abs/math/9502225" target="_blank" rel="noopener">Broline, Loeb (1995)</a></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+'use strict';
+var TOTAL=48; /* 플레이어마다 24개 */
+var M=['m1','m2','m3','m4','m5','m6'], O=['o1','o2','o3','o4','o5','o6'];
+var ALL=['t','ot','ms','os'].concat(M,O);
+/* 내가 구슬을 뿌리는 길: 내 주머니 → 내 만칼라통 → 상대 주머니(상대 만칼라통은 건너뜀) */
+var PATH=['m6','m5','m4','m3','m2','m1','ms','o6','o5','o4','o3','o2','o1'];
+var REDUCED=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var STEP=330;
+function $(s){return document.querySelector(s);}
+
+var SP_FULL={m1:4,m2:4,m3:4,m4:4,m5:4,m6:4,o1:4,o2:4,o3:4,o4:4,o5:4,o6:4};
+/* 행동3: 내 5·6번 주머니 8개, 상대 주머니 28개, 양쪽 만칼라통 6개씩 = 48개. 보관함은 비어 있다 */
+var SP_CAP={m6:4,m5:4,o1:5,o2:5,o3:5,o4:5,o5:4,o6:4,ms:6,os:6};
+var SP_END={o1:1,m5:3,m4:1,ms:23,os:20};
+
+var TUT=[
+ {pre:'준비',name:'기본 배치',title:'기본 배치',text:'구슬은 모두 48개, 플레이어마다 24개씩이에요. 각자 주머니 6개에 4개씩 담고 시작해요. 오른쪽의 긴 통이 내 만칼라통이에요.'},
+ {pre:'행동1',name:'옮기기',title:'행동1 · 옮기기',text:'주머니 하나를 눌러 보세요. 구슬을 모두 집어 한 칸에 하나씩 오른쪽으로 옮겨 놓아요. 내 만칼라통도 한 칸으로 세고, 상대 만칼라통은 건너뛰어요.'},
+ {pre:'행동2',name:'프리턴 얻기',title:'행동2 · 프리턴 얻기',text:'마지막 구슬이 내 만칼라통에 들어가면 한 번 더 옮길 수 있어요. 반짝이는 4번 주머니를 눌러 보세요.'},
+ {pre:'행동3',name:'상대방 구슬 가져오기',title:'행동3 · 상대방 구슬 가져오기',text:'마지막 구슬이 내 쪽 빈 주머니에 들어가면, 바로 맞은편 상대 주머니의 구슬을 모두 내 만칼라통으로 가져와요.'},
+ {pre:'게임종료',name:'남은 내 구슬 가져오기',title:'게임종료 · 남은 내 구슬 가져오기',text:'한쪽 주머니가 모두 비면 게임이 끝나요. 상대가 마지막 구슬을 옮기면 내 주머니에 남은 구슬은 모두 내 만칼라통으로 가요.'}
+];
+var NEED1=3; /* 행동1은 구슬을 3번 옮기면 성공 */
+var INTRO=[
+ '각 주머니마다 구슬을 4개씩 담고 시작해요.\n플레이어마다 24개, 모두 48개예요.',
+ '주머니를 누르면 구슬을 모두 집어 한 칸에 하나씩 오른쪽으로 옮겨 놓아요.\n내 만칼라통도 한 칸으로 세고, 상대 만칼라통은 건너뛰어요.\n구슬을 '+NEED1+'번 옮겨 보세요.',
+ '마지막 구슬이 내 만칼라통에 들어가면 한 번 더 옮길 수 있어요.\n반짝이는 4번 주머니를 눌러 보세요.',
+ '마지막 구슬이 내 쪽 빈 주머니에 들어가면, 맞은편 상대 주머니의 구슬을 모두 내 만칼라통으로 가져와요.\n반짝이는 5번이나 6번 주머니를 눌러 보세요.',
+ '한쪽 주머니가 모두 비면 게임이 끝나요.\n상대가 마지막 구슬을 옮기면, 내 주머니에 남은 구슬은 모두 내 만칼라통으로 가요.'
+];
+var EXP=[{name:'1단계'},{name:'2단계'},{name:'3단계'},{name:'4단계'},{name:'5단계'},{name:'6단계'},{name:'n단계'}];
+var EXPINFO=[
+ '1번 주머니에 구슬 1개가 있어요. 프리턴을 이어 가며 모든 구슬을 내 만칼라통에 넣으면 성공이에요.',
+ '2번 주머니에 구슬 2개가 있어요. 프리턴을 이어 가며 모든 구슬을 내 만칼라통에 넣어 보세요.',
+ '3번 주머니에 3개, 2번 주머니에 1개가 있어요. 프리턴만으로 모두 넣을 수 있을까요?',
+ '번호 옆 ▲▼ 버튼으로 구슬 수를 정해 보세요. 4번 주머니까지 쓰면서 프리턴으로 모두 넣을 수 있는 배치를 찾아요.',
+ '번호 옆 ▲▼ 버튼으로 구슬 수를 정해 보세요. 5번 주머니까지 쓰면서 프리턴으로 모두 넣을 수 있는 배치를 찾아요.',
+ '번호 옆 ▲▼ 버튼으로 구슬 수를 정해 보세요. 6번 주머니까지 쓰면서 프리턴으로 모두 넣을 수 있는 배치를 찾아요.',
+ 'n번 주머니까지 쓰는 가장 적은 구슬 수 a(n)을 모으면 수열이 돼요. n² ÷ a(n)이 π에 가까워지는지 살펴봐요.'
+];
+var EXPSP=[{m1:1},{m2:2},{m3:3,m2:1},{},{},{}];
+
+var mode='home', tab=0, busy=false, runId=0, ord=0, positioned=false, popupTimer=null;
+var beads=[], beadEls=[], hist=[], hi=0, slot={}, prog=0, freeGot=false;
+
+var homeEl=$('#home'), playEl=$('#play'), tabsEl=$('#tabs'), boardEl=$('#board'), stage=$('#stage'), layer=$('#beads');
+var popup=$('#popup'), statusEl=$('#status'), boardArea=$('#boardArea'), nview=$('#nview');
+var undoBtn=$('#undoBtn'), redoBtn=$('#redoBtn'), resetBtn=$('#resetBtn');
+
+/* ---------- 판 DOM ---------- */
+function buildBoard(){
+  var h='';
+  h+='<div class="lab" style="grid-column:1;grid-row:1"><span class="pn">상대 만칼라통</span><span class="cnt" data-c="os">0</span></div>';
+  h+='<div class="store" data-z="os" role="img" aria-label="상대 만칼라통" style="grid-column:1;grid-row:2/4"></div>';
+  var j,n,col;
+  for(j=1;j<=6;j++){
+    col=1+j;
+    h+='<div class="lab" style="grid-column:'+col+';grid-row:1"><span class="cnt" data-c="o'+j+'">0</span></div>';
+    h+='<div class="cell" style="grid-column:'+col+';grid-row:2"><button type="button" class="well opp" data-z="o'+j+'" aria-label="상대 주머니"></button></div>';
+  }
+  for(n=1;n<=6;n++){
+    col=8-n;
+    h+='<div class="cell" style="grid-column:'+col+';grid-row:3"><button type="button" class="well" data-z="m'+n+'" aria-label="내 '+n+'번 주머니"></button><span class="tag" hidden>옮기기</span></div>';
+    h+='<div class="lab" style="grid-column:'+col+';grid-row:4"><span class="pn"><b>'+n+'</b><i>번</i></span><span class="cr"><span class="cnt" data-c="m'+n+'">0</span>'
+      +'<span class="step"><button type="button" class="stp" data-n="'+n+'" data-d="1" aria-label="'+n+'번 주머니 구슬 늘리기">▲</button>'
+      +'<button type="button" class="stp" data-n="'+n+'" data-d="-1" aria-label="'+n+'번 주머니 구슬 줄이기">▼</button></span></span></div>';
+  }
+  h+='<div class="store" data-z="ms" role="img" aria-label="내 만칼라통" style="grid-column:8;grid-row:2/4"></div>';
+  h+='<div class="lab" style="grid-column:8;grid-row:4"><span class="pn">내 만칼라통</span><span class="cnt" data-c="ms">0</span></div>';
+  boardEl.innerHTML=h;
+  var els=boardEl.querySelectorAll('[data-z]');
+  for(var i=0;i<els.length;i++){ slot[els[i].getAttribute('data-z')]=els[i]; }
+  slot.t=$('#tray');
+}
+function initBeads(){
+  for(var i=0;i<TOTAL;i++){
+    var d=document.createElement('div');
+    d.className='bead gl k'+((i*3)%8);
+    layer.appendChild(d); beadEls.push(d);
+    beads.push({z:i<24?'t':'ot',o:i,own:i<24?'m':'o'});
+  }
+  ord=TOTAL;
+  slot.ot=$('#trayO');
+}
+
+/* ---------- 상태 ---------- */
+function idIn(z){
+  var r=[]; for(var i=0;i<beads.length;i++){ if(beads[i].z===z) r.push(i); }
+  return r.sort(function(a,b){return beads[a].o-beads[b].o;});
+}
+function cnt(z){ var c=0; for(var i=0;i<beads.length;i++){ if(beads[i].z===z) c++; } return c; }
+function snap(){ return beads.map(function(b){return {z:b.z,o:b.o,own:b.own};}); }
+function restore(s){ beads=s.map(function(b){return {z:b.z,o:b.o,own:b.own};}); prog=s.pg||0; freeGot=!!s.fg; }
+function stamp(s){ s.pg=prog; s.fg=freeGot; return s; }
+function initHist(){ prog=0; freeGot=false; hist=[stamp(snap())]; hi=0; }
+function pushHist(){ hist=hist.slice(0,hi+1); hist.push(stamp(snap())); hi=hist.length-1; }
+function moveBead(id,z){
+  beads[id].z=z; beads[id].o=++ord;
+  var el=beadEls[id]; el.classList.add('fly');
+  setTimeout(function(){el.classList.remove('fly');},420);
+}
+/* 구슬마다 주인(own)이 있어서, 상대 쪽 칸은 상대 구슬을 먼저 쓰고 남은 구슬은 각자 보관함으로 돌아간다 */
+function applySpec(sp){
+  var zones=ALL.filter(function(z){return z!=='t'&&z!=='ot';}), pool=[];
+  zones.forEach(function(z){
+    var have=idIn(z), w=sp[z]||0;
+    while(have.length>w){ var id=have.pop(); beads[id].z=null; pool.push(id); }
+  });
+  function pick(pref){
+    var i, other=(pref==='m')?'o':'m';
+    for(i=0;i<pool.length;i++){ if(beads[pool[i]].own===pref) return pool.splice(i,1)[0]; }
+    var t=idIn(pref==='m'?'t':'ot'); if(t.length) return t[0];
+    if(pool.length) return pool.shift();
+    t=idIn(other==='m'?'t':'ot'); return t.length?t[0]:null;
+  }
+  zones.forEach(function(z){
+    var pref=(z.charAt(0)==='o')?'o':'m';
+    while(cnt(z)<(sp[z]||0)){
+      var id=pick(pref); if(id===null) break;
+      beads[id].z=z; beads[id].o=++ord;
+    }
+  });
+  pool.forEach(function(id){ beads[id].z=beads[id].own==='m'?'t':'ot'; beads[id].o=++ord; });
+}
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,REDUCED?Math.min(ms,60):ms); }); }
+
+/* ---------- 구슬 배치 계산 ---------- */
+function unitPts(n,rot){
+  var p=[],k,a;
+  if(n<=0) return {p:p,f:0.5};
+  if(n===1) return {p:[[0,0]],f:0.5};
+  if(n<=6){
+    var r=(n===2)?0.5:1/(2*Math.sin(Math.PI/n));
+    for(k=0;k<n;k++){ a=rot+2*Math.PI*k/n; p.push([r*Math.cos(a),r*Math.sin(a)]); }
+    return {p:p,f:r+0.5};
+  }
+  p.push([0,0]);
+  var left=n-1,j=1;
+  while(left>0){
+    var m=Math.min(6*j,left), rr=j*1.02;
+    for(k=0;k<m;k++){ a=rot*j+(j%2)*0.3+2*Math.PI*k/m; p.push([rr*Math.cos(a),rr*Math.sin(a)]); }
+    left-=m; j++;
+  }
+  return {p:p,f:(j-1)*1.02+0.5};
+}
+function rectPts(n,x,y,w,h,D0,fromBottom){
+  var uw=w*0.8, uh=h*0.9, D=Math.min(D0,Math.sqrt(uw*uh*0.78/Math.max(n,1)));
+  var cols=Math.max(1,Math.floor(uw/(D*1.06))), rows=Math.ceil(n/cols);
+  while(rows*D*1.06>uh && D>3){ D*=0.94; cols=Math.max(1,Math.floor(uw/(D*1.06))); rows=Math.ceil(n/cols); }
+  var step=D*1.06, cx=x+w/2, cy=y+h/2, pts=[];
+  for(var k=0;k<n;k++){
+    var row=Math.floor(k/cols), inRow=Math.min(cols,n-row*cols), col=k%cols;
+    var px=cx+(col-(inRow-1)/2)*step;
+    var py=fromBottom?(cy+(rows-1)/2*step-row*step):(cy-(rows-1)/2*step+row*step);
+    pts.push([px,py]);
+  }
+  return {pts:pts,D:D};
+}
+function render(instant){
+  var sr=stage.getBoundingClientRect();
+  if(sr.width===0) return;
+  if(!positioned){ instant=true; positioned=true; }
+  if(instant) layer.classList.add('instant');
+  var w0=slot.m1.getBoundingClientRect().width, D0=w0*0.25;
+  var groups={}; ALL.forEach(function(z){groups[z]=[];});
+  beads.forEach(function(b,i){ groups[b.z].push(i); });
+  ALL.forEach(function(z){
+    var arr=groups[z].sort(function(a,b){return beads[a].o-beads[b].o;}), n=arr.length;
+    var r=slot[z].getBoundingClientRect(), x=r.left-sr.left, y=r.top-sr.top, w=r.width, h=r.height;
+    var pts=[], D=D0;
+    if(w===0&&h===0){ arr.forEach(function(id){ beadEls[id].style.opacity='0'; beadEls[id]._g=true; }); return; }
+    if(/^[mo][1-6]$/.test(z)){
+      var u=unitPts(n,z.charCodeAt(1)*0.7), R=w*0.5*0.84;
+      D=Math.min(D0,R/u.f);
+      pts=u.p.map(function(q){return [x+w/2+q[0]*D,y+h/2+q[1]*D];});
+    } else if(z==='t'||z==='ot'){
+      var rt=rectPts(n,x,y,w,h,D0,false); pts=rt.pts; D=rt.D;
+    } else {
+      var rs=rectPts(n,x,y,w,h,D0,true); pts=rs.pts; D=rs.D;
+    }
+    arr.forEach(function(id,k){
+      var el=beadEls[id], wasGone=el._g;
+      if(wasGone){ el._g=false; el.style.transition='none'; }
+      el.style.width=D+'px'; el.style.height=D+'px';
+      el.style.left=(pts[k][0]-D/2)+'px'; el.style.top=(pts[k][1]-D/2)+'px';
+      if(wasGone){ void el.offsetWidth; el.style.transition=''; el.style.opacity=''; }
+    });
+  });
+  var cs=document.querySelectorAll('[data-c]');
+  for(var i=0;i<cs.length;i++){ cs[i].textContent=groups[cs[i].getAttribute('data-c')].length; }
+  M.forEach(function(z){ slot[z].setAttribute('aria-label','내 '+z[1]+'번 주머니, 구슬 '+groups[z].length+'개'); });
+  if(instant){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ layer.classList.remove('instant'); }); }); }
+}
+
+/* ---------- 표시 도우미 ---------- */
+function setStatus(t,tone){ statusEl.textContent=t; statusEl.className='status'+(tone?' '+tone:''); }
+function setHints(list){
+  M.forEach(function(z){
+    var on=list.indexOf(z)>=0, w=slot[z];
+    w.classList.toggle('hint',on);
+    var tg=w.parentNode.querySelector('.tag'); if(tg) tg.hidden=!on;
+  });
+}
+function computeHints(){
+  var r=[],n;
+  if(mode==='tut'){
+    if(tab===1) return M.filter(function(z){return cnt(z)>0;});
+    if(tab===2){
+      if(!freeGot) return hi===0?['m4']:[];
+      return M.filter(function(z){return cnt(z)>0;});
+    }
+    if(tab===3) return hi===0?['m5','m6']:[];
+  }
+  return r;
+}
+function flash(z){ var e=slot[z]; if(!e) return; e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash'); setTimeout(function(){e.classList.remove('flash');},1300); }
+function showPopup(kind,title,sub,opts){
+  opts=opts||{}; clearTimeout(popupTimer);
+  popup.setAttribute('data-kind',kind);
+  $('#pTitle').textContent=title; $('#pSub').textContent=sub||'';
+  var pb=$('#pBtns'); pb.innerHTML='';
+  (opts.buttons||[]).forEach(function(b){
+    var btn=document.createElement('button'); btn.type='button'; btn.className='btn'+(b.primary?' primary':''); btn.textContent=b.label;
+    btn.addEventListener('click',function(e){ e.stopPropagation(); closePopup(); b.fn(); }); pb.appendChild(btn);
+  });
+  popup.classList.toggle('sticky',!!opts.sticky);
+  popup._body=opts.body||null;
+  $('#scrim').classList.toggle('show',!!opts.sticky);
+  popup.classList.add('show');
+  if(!opts.sticky) popupTimer=setTimeout(closePopup,opts.ms||2300);
+}
+function closePopup(){ clearTimeout(popupTimer); popup.classList.remove('show','sticky'); popup._body=null; $('#scrim').classList.remove('show'); }
+function introPopup(my,title,text,cb){
+  busy=true; updateControls(); setStatus('설명을 읽고 [확인]을 눌러 주세요.','');
+  var go=function(){ if(my!==runId) return; busy=false; updateControls(); cb(); };
+  showPopup('intro',title,text,{sticky:true,body:go,buttons:[{label:'확인',primary:true,fn:go}]});
+}
+function afterIntro(my){
+  if(my!==runId) return;
+  if(tab===0){ setupBasic(my); return; }
+  if(tab===4){ setStatus('상대 주머니에는 구슬이 1개만 남았어요. 상대가 마지막 구슬을 옮겨요.',''); playEnd(my); return; }
+  setHints(computeHints());
+  setStatus([null,
+    '반짝이는 주머니를 눌러 구슬을 옮겨 보세요. (옮기기 0/'+NEED1+')',
+    '4번 주머니의 구슬 4개는 정확히 내 만칼라통까지 가요. 눌러 보세요.',
+    '5번은 마지막 구슬이 내 1번 빈 주머니에, 6번은 2번 빈 주머니에 들어가요. 하나를 눌러 보세요.'][tab],'');
+}
+async function tabSuccess(my,title,sub,next){
+  busy=true; updateControls(); setHints([]);
+  showPopup('success',title,sub,{ms:2300});
+  await sleep(2400); if(my!==runId) return;
+  tab=next; startTab();
+}
+function expFail(my){
+  setStatus('프리턴 실패. 마지막 구슬이 내 만칼라통에 들어가지 못했어요.','warn');
+  var again=function(){ if(my!==runId) return; startTab(); };
+  showPopup('fail','프리턴 실패','마지막 구슬이 내 만칼라통에 들어가지 못했어요.\n누르면 처음 상태로 초기화해요.',{sticky:true,body:again,buttons:[{label:'초기화',primary:true,fn:again}]});
+}
+function oppClick(){
+  if(busy) return;
+  showPopup('warn','상대방 주머니를 클릭하면 내 주머니만 움직일 수 있어요.','',{ms:2200});
+}
+function updateControls(){
+  undoBtn.disabled=busy||hi===0;
+  redoBtn.disabled=busy||hi>=hist.length-1;
+}
+function whereTxt(z){ if(z==='ms') return '내 만칼라통'; if(z.charAt(0)==='m') return '내 '+z.charAt(1)+'번 주머니'; return '상대 주머니'; }
+function allHome(){
+  return ALL.every(function(z){ return z==='t'||z==='ot'||z==='ms'||cnt(z)===0; }) && cnt('ms')>0;
+}
+
+/* ---------- 구슬 옮기기 ---------- */
+async function doMove(z){
+  if(busy||mode==='home') return;
+  var ids=idIn(z);
+  if(!ids.length){ setStatus('빈 주머니예요. 구슬이 있는 주머니를 눌러 주세요.','warn'); return; }
+  var my=runId; busy=true; closePopup(); setHints([]); updateControls();
+  var extra=freeGot, captured=false, failed=false;
+  var count=ids.length;
+  var order=ids.slice().sort(function(a,b){return beads[b].o-beads[a].o;});
+  var idx=PATH.indexOf(z), last=z, i;
+  for(i=0;i<order.length;i++){
+    idx=(idx+1)%PATH.length; last=PATH[idx];
+    moveBead(order[i],last); render();
+    await sleep(STEP); if(my!==runId) return;
+  }
+  var msg=count+'개를 옮겼어요. 마지막 구슬은 '+whereTxt(last)+'에 들어갔어요.', tone='';
+  var freePopup=(mode==='tut'&&tab>=2), capOn=(mode==='tut'&&tab===3);
+  if(last==='ms'){
+    flash('ms'); tone='ok';
+    if(mode==='tut'&&tab===2) freeGot=true;
+    if(freePopup){
+      showPopup('free','한 번 더 옮기기','마지막 구슬이 내 만칼라통에 들어갔어요.');
+      msg+=' 프리턴을 얻었어요!';
+    } else if(mode==='exp'){ msg='마지막 구슬이 내 만칼라통에 들어갔어요. 프리턴! 한 번 더 옮길 수 있어요.'; }
+  } else if(capOn && last.charAt(0)==='m' && cnt(last)===1 && cnt('o'+(7-Number(last.charAt(1))))>0){
+    var opp='o'+(7-Number(last.charAt(1)));
+    flash(last); flash(opp);
+    showPopup('capture','상대방 구슬 가져오기','빈 주머니에 마지막 구슬이 들어가서 맞은편 구슬을 가져와요.',{ms:2600});
+    await sleep(1000); if(my!==runId) return;
+    var grab=idIn(opp).concat(idIn(last)), k;
+    for(k=0;k<grab.length;k++){ moveBead(grab[k],'ms'); render(); await sleep(300); if(my!==runId) return; }
+    flash('ms'); tone='ok';
+    captured=true;
+    msg='맞은편 상대 구슬 '+(grab.length-1)+'개와 내 구슬 1개, 모두 '+grab.length+'개를 내 만칼라통에 넣었어요.';
+  } else if(mode==='tut' && tab===2){
+    msg+=' 마지막 구슬이 만칼라통에 들어가지 않아 프리턴은 없어요.';
+  } else if(mode==='exp'){
+    msg='마지막 구슬이 만칼라통에 들어가지 못했어요.'; tone='warn'; failed=true;
+  }
+  prog++;
+  pushHist(); busy=false; setHints(computeHints()); updateControls();
+  if(mode==='exp' && allHome()){ expSuccess(); return; }
+  if(mode==='exp' && failed){ expFail(my); return; }
+  if(mode==='tut'){
+    if(tab===1){
+      if(prog>=NEED1){ setStatus(msg,'ok'); tabSuccess(my,'옮기기 성공!','잘했어요. 행동2 · 프리턴 얻기로 이동해요.',2); return; }
+      msg+=' (옮기기 '+prog+'/'+NEED1+')';
+    } else if(tab===2&&extra){
+      setStatus(msg,'ok'); tabSuccess(my,'프리턴 성공!','잘했어요. 행동3 · 상대방 구슬 가져오기로 이동해요.',3); return;
+    } else if(tab===3&&captured){
+      setStatus(msg,'ok'); tabSuccess(my,'구슬 가져오기 성공!','잘했어요. 게임종료로 이동해요.',4); return;
+    }
+  }
+  setStatus(msg,tone);
+}
+function expSuccess(){
+  var n=tab+1, used=true;
+  if(n>=4){ used=hist.slice(0,hi+1).some(function(s){ return s.some(function(b){return b.z==='m'+n;}); }); }
+  var btns=[{label:'다시 하기',fn:function(){ startTab(); }}];
+  if(tab<6) btns.push({label:(tab===5?'n단계 보기':'다음 단계'),primary:true,fn:function(){ tab=tab+1; startTab(); }});
+  var sub=used?'모든 구슬을 내 만칼라통에 넣었어요.':'성공! 이번에는 '+n+'번 주머니는 쓰지 않았어요. '+n+'번 주머니까지 쓰는 배치도 찾아보세요.';
+  setStatus('모든 구슬이 내 만칼라통에 들어갔어요.','ok');
+  showPopup('success','성공',sub,{sticky:true,buttons:btns});
+}
+function adjust(n,d){
+  if(busy||mode!=='exp'||tab<3) return;
+  closePopup();
+  if(d>0){
+    var t=idIn('t');
+    if(!t.length){ setStatus('게임판 밖에 구슬이 더 없어요.','warn'); return; }
+    moveBead(t[0],'m'+n);
+  } else {
+    var m=idIn('m'+n);
+    if(!m.length) return;
+    moveBead(m[m.length-1],'t');
+  }
+  render(); pushHist(); updateControls();
+  setStatus(n+'번 주머니에 구슬 '+cnt('m'+n)+'개, 게임판 밖에 '+cnt('t')+'개가 있어요.','');
+}
+
+/* ---------- 탭 시작 ---------- */
+function show(which){
+  homeEl.hidden=which!=='home'; playEl.hidden=which!=='play';
+  if(which==='home') $('#app').classList.remove('fit');
+  $('#homeBtn').hidden=which==='home';
+  $('#crumb').textContent=which==='home'?'':(mode==='tut'?'튜토리얼':'1인 만칼라 수 탐구');
+}
+function buildTabs(){
+  var list=mode==='tut'?TUT:EXP;
+  tabsEl.innerHTML=list.map(function(t,i){
+    return '<button type="button" class="tabbtn'+(t.pre?'':' solo')+'" role="tab" aria-selected="'+(i===tab)+'" data-i="'+i+'">'
+      +(t.pre?'<small>'+t.pre+'</small>':'')+'<span>'+t.name+'</span></button>';
+  }).join('');
+  var sel=tabsEl.children[tab]; if(sel&&sel.scrollIntoView){ sel.scrollIntoView({inline:'nearest',block:'nearest'}); }
+}
+function startTab(){
+  runId++; busy=false; closePopup(); nPause();
+  buildTabs();
+  var isN=(mode==='exp'&&tab===6);
+  boardArea.hidden=isN; nview.hidden=!isN; $('#controls').hidden=isN; $('#nCtl').hidden=!isN; $('#app').classList.toggle('fit',!isN);
+  if(mode==='tut'){ $('#infoT').textContent=TUT[tab].title; $('#infoP').textContent=TUT[tab].text; }
+  else {
+    $('#infoT').textContent=isN?'n단계 · 수열과 원주율':(tab+1)+'단계';
+    $('#infoP').textContent=EXPINFO[tab];
+  }
+  if(isN){ drawN(); return; }
+  boardEl.classList.toggle('editable',mode==='exp'&&tab>=3);
+  $('#trayO').hidden=(mode==='exp'); /* 수 탐구는 내 구슬 24개로 혼자 해요 */
+  if(mode==='tut'){
+    applySpec([{},SP_FULL,SP_FULL,SP_CAP,SP_END][tab]);
+    initHist(); render(); setHints([]); updateControls();
+    var myRun=runId;
+    introPopup(myRun,TUT[tab].title,INTRO[tab],function(){ afterIntro(myRun); });
+  } else {
+    applySpec(EXPSP[tab]); initHist(); render(); setHints([]); updateControls();
+    setStatus(tab<3?'구슬이 있는 주머니를 눌러 보세요. 마지막 구슬이 만칼라통에 들어가야 프리턴이에요.':'▲로 구슬을 늘리고 ▼로 줄여서 배치를 만들어 보세요.','');
+  }
+}
+async function setupBasic(my){
+  busy=true; updateControls();
+  setStatus('각 주머니에 구슬을 4개씩 담고 있어요.','');
+  await sleep(500); if(my!==runId) return;
+  for(var n=1;n<=6;n++){
+    for(var k=0;k<4;k++){
+      moveBead(idIn('t')[0],'m'+n);
+      moveBead(idIn('ot')[0],'o'+(7-n));
+      render();
+      await sleep(150); if(my!==runId) return;
+    }
+  }
+  pushHist();
+  setStatus('각자 주머니 6개에 구슬이 4개씩 담겼어요. 오른쪽 긴 통이 내 만칼라통, 왼쪽 긴 통이 상대 만칼라통이에요. 곧 행동1로 넘어가요.','ok');
+  await sleep(1800); if(my!==runId) return;
+  tab=1; startTab();
+}
+async function playEnd(my){
+  busy=true; updateControls();
+  await sleep(1500); if(my!==runId) return;
+  moveBead(idIn('o1')[0],'os'); render(); flash('os');
+  setStatus('상대가 마지막 구슬을 옮겼어요. 상대 주머니가 모두 비었어요.','');
+  await sleep(1100); if(my!==runId) return;
+  var left=idIn('m5').concat(idIn('m4'));
+  for(var i=0;i<left.length;i++){ moveBead(left[i],'ms'); render(); await sleep(380); if(my!==runId) return; }
+  flash('ms'); pushHist(); busy=false; updateControls();
+  var me=cnt('ms'), op=cnt('os');
+  setStatus('게임이 끝났어요. 내 만칼라통 '+me+'개, 상대 만칼라통 '+op+'개예요.','ok');
+  showPopup('end','게임 종료','구슬을 더 많이 모은 플레이어가 이깁니다.\n나 '+me+' : 상대 '+op,{sticky:true,buttons:[{label:'닫기',fn:function(){}},{label:'다시 보기',primary:true,fn:function(){startTab();}}]});
+}
+
+/* ---------- 되돌리기 / 다시 실행 ---------- */
+function afterNav(msg){
+  closePopup(); render(); setHints(computeHints()); updateControls(); setStatus(msg,'');
+}
+function undo(){ if(busy||hi===0) return; runId++; hi--; restore(hist[hi]); afterNav('이전 상태로 돌아왔어요.'); }
+function redo(){ if(busy||hi>=hist.length-1) return; runId++; hi++; restore(hist[hi]); afterNav('다시 실행했어요.'); }
+
+/* ---------- n단계 (Tchoukaillon 수열) ---------- */
+var SEQ=(function(maxN){
+  var cfg=[],a=[0],snapc=[null],N=0;
+  while(a.length<=maxN){
+    N++;
+    var i=0; while(i<cfg.length&&cfg[i]!==0) i++;
+    var grew=false; if(i===cfg.length){ cfg.push(0); grew=true; }
+    cfg[i]=i+1;
+    for(var j=0;j<i;j++) cfg[j]--;
+    if(grew){ a[cfg.length]=N; snapc[cfg.length]=cfg.slice(); }
+  }
+  return {a:a,cfg:snapc};
+})(60);
+/* n단계 자동 실행: 0.45초마다 n을 1씩 올려 60까지 보여 준다. 일시정지하면 그 n에서 멈춘다 */
+var nTimer=null, nMid=false;
+function nUpdateBtns(){ $('#autoBtn').disabled=!!nTimer; $('#pauseBtn').disabled=!nTimer; }
+function nPause(){
+  if(nTimer){ clearInterval(nTimer); nTimer=null; var r=$('#nRange'); nMid=Number(r.value)<Number(r.max); }
+  nUpdateBtns();
+}
+function nPlay(){
+  if(nTimer) return;
+  var r=$('#nRange');
+  if(!nMid||Number(r.value)>=Number(r.max)){ r.value=r.min; drawN(); }
+  nTimer=setInterval(function(){
+    var v=Number(r.value);
+    if(v>=Number(r.max)){ nPause(); return; }
+    r.value=v+1; drawN();
+    if(v+1>=Number(r.max)) nPause();
+  },450);
+  nUpdateBtns();
+}
+/* a(n) 계산: n에서 시작해 n-1, n-2, …, 1의 배수가 되도록 차례로 올림 */
+function chainOf(n){
+  var x=n, c=[n];
+  for(var k=n-1;k>=1;k--){ x=Math.ceil(x/k)*k; c.push(x); }
+  return c;
+}
+function buildWhy(){
+  var chips='', i;
+  for(i=1;i<=12;i++){ chips+='<span class="chip"><i>a('+i+')</i>'+SEQ.a[i]+'</span>'; }
+  $('#seqChips').innerHTML=chips+'<span class="chip"><i>…</i></span>';
+  var rows='';
+  [10,100,1000,10000,100000].forEach(function(n){
+    var c=chainOf(n), a=c[c.length-1], r=n*n/a;
+    rows+='<tr><td>'+n.toLocaleString('en-US')+'</td><td>'+a.toLocaleString('en-US')+'</td><td>'+r.toFixed(4)+'</td><td>'+(Math.PI-r).toFixed(4)+'</td></tr>';
+  });
+  $('#whyTbl').innerHTML=rows;
+}
+function drawN(){
+  var n=Number($('#nRange').value), a=SEQ.a[n], conf=SEQ.cfg[n], ratio=n*n/a;
+  $('#nOut').textContent=n; $('#fA').textContent=a;
+  $('#fR').textContent=ratio.toFixed(4); $('#fD').textContent=Math.abs(Math.PI-ratio).toFixed(4);
+  $('#chainN').textContent='n='+n+':'; $('#chain').textContent=chainOf(n).join(' → ');
+  $('#seqText').textContent='a(1)부터 a(12)까지: '+SEQ.a.slice(1,13).join(', ')+' … · 지금 n='+n+'일 때 구슬은 모두 '+a+'개예요.';
+  /* 주머니별 구슬 수: 판처럼 n번이 왼쪽, 1번이 오른쪽(만칼라통 쪽) */
+  var W=640,H=170,L=14,R=70,B=34,T=22,pw=W-L-R,ph=H-T-B,bw=pw/n,s='',i;
+  s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/>';
+  for(i=1;i<=n;i++){
+    var v=conf[i-1], x=L+(n-i)*bw, h=n>0?v/n*ph:0;
+    s+='<rect class="barr" x="'+(x+bw*0.12)+'" y="'+(H-B-h)+'" width="'+(bw*0.76)+'" height="'+h+'" rx="2"/>';
+    if(n<=15){
+      s+='<text class="tx b" text-anchor="middle" x="'+(x+bw/2)+'" y="'+(H-B-h-4)+'">'+v+'</text>';
+      s+='<text class="tx" text-anchor="middle" x="'+(x+bw/2)+'" y="'+(H-B+16)+'">'+i+'번</text>';
+    } else if(i%5===0||i===1){
+      s+='<text class="tx" text-anchor="middle" x="'+(x+bw/2)+'" y="'+(H-B+16)+'">'+i+'</text>';
+    }
+  }
+  s+='<text class="tx b" x="'+(W-R+8)+'" y="'+(H-B-4)+'">만칼라통 →</text>';
+  $('#barSvg').innerHTML=s;
+  /* n² ÷ a(n) 그래프 */
+  var W2=640,H2=250,L2=40,R2=20,T2=20,B2=34,pw2=W2-L2-R2,ph2=H2-T2-B2,ymax=3.6;
+  function X(k){return L2+k/60*pw2;} function Y(v){return H2-B2-v/ymax*ph2;}
+  var g='',pts=[],t;
+  for(t=0;t<=3;t++){ g+='<line class="ax" x1="'+L2+'" y1="'+Y(t)+'" x2="'+(W2-R2)+'" y2="'+Y(t)+'"/><text class="tx" text-anchor="end" x="'+(L2-6)+'" y="'+(Y(t)+4)+'">'+t+'</text>'; }
+  for(t=0;t<=60;t+=10){ g+='<text class="tx" text-anchor="middle" x="'+X(t)+'" y="'+(H2-B2+18)+'">'+t+'</text>'; }
+  g+='<text class="tx" text-anchor="end" x="'+(W2-R2)+'" y="'+(H2-4)+'">n(단계)</text>';
+  g+='<line class="piln" x1="'+L2+'" y1="'+Y(Math.PI)+'" x2="'+(W2-R2)+'" y2="'+Y(Math.PI)+'"/>';
+  g+='<text class="tx b" x="'+(L2+6)+'" y="'+(Y(Math.PI)-6)+'">π ≈ 3.14159</text>';
+  for(i=1;i<=60;i++){ pts.push(X(i).toFixed(1)+','+Y(i*i/SEQ.a[i]).toFixed(1)); }
+  g+='<polyline class="ln" points="'+pts.join(' ')+'"/>';
+  for(i=1;i<=60;i++){ g+='<circle class="dt" cx="'+X(i).toFixed(1)+'" cy="'+Y(i*i/SEQ.a[i]).toFixed(1)+'" r="2.4"/>'; }
+  g+='<circle class="mk" cx="'+X(n)+'" cy="'+Y(ratio)+'" r="6"/>';
+  $('#ratioSvg').innerHTML=g;
+}
+
+/* ---------- 시작 화면 미니 판 ---------- */
+function mini(mine,opp){
+  var h='<div class="ms"></div>',j,n,k;
+  for(j=1;j<=6;j++){
+    h+='<div class="mw" style="grid-column:'+(1+j)+';grid-row:1">';
+    for(k=0;k<((opp&&opp[j])||0);k++){ h+='<i class="gl k'+((j*5+k*3)%8)+'"></i>'; }
+    h+='</div>';
+  }
+  for(n=1;n<=6;n++){
+    h+='<div class="mw" style="grid-column:'+(8-n)+';grid-row:2">';
+    for(k=0;k<(mine[n]||0);k++){ h+='<i class="gl k'+((n*3+k*5)%8)+'"></i>'; }
+    h+='</div>';
+  }
+  h+='<div class="ms" style="grid-column:8;grid-row:1/3"></div>';
+  return h;
+}
+
+/* ---------- 이벤트 ---------- */
+boardEl.addEventListener('click',function(e){
+  var w=e.target.closest('.well:not(.opp)'); if(w){ doMove(w.getAttribute('data-z')); return; }
+  if(e.target.closest('.well.opp')){ oppClick(); return; }
+  var s=e.target.closest('.stp'); if(s){ adjust(Number(s.getAttribute('data-n')),Number(s.getAttribute('data-d'))); }
+});
+tabsEl.addEventListener('click',function(e){
+  var b=e.target.closest('.tabbtn'); if(!b) return;
+  tab=Number(b.getAttribute('data-i')); startTab();
+});
+resetBtn.addEventListener('click',function(){ startTab(); });
+undoBtn.addEventListener('click',undo);
+redoBtn.addEventListener('click',redo);
+$('#nRange').addEventListener('input',function(){ if(!nTimer) nMid=true; drawN(); });
+$('#autoBtn').addEventListener('click',nPlay);
+$('#pauseBtn').addEventListener('click',nPause);
+$('#pickTut').addEventListener('click',function(){ mode='tut'; tab=0; show('play'); startTab(); });
+$('#pickExp').addEventListener('click',function(){ mode='exp'; tab=0; show('play'); startTab(); });
+$('#homeBtn').addEventListener('click',function(){ runId++; busy=false; closePopup(); nPause(); mode='home'; show('home'); });
+popup.addEventListener('click',function(){
+  if(popup.classList.contains('sticky')){ var f=popup._body; if(f){ closePopup(); f(); } return; }
+  closePopup();
+});
+if(window.ResizeObserver){ new ResizeObserver(function(){ if(mode!=='home'&&!boardArea.hidden) render(true); }).observe(stage); }
+window.addEventListener('resize',function(){ if(mode!=='home'&&!boardArea.hidden) render(true); });
+
+buildBoard(); initBeads();
+$('#miniTut').innerHTML=mini({1:4,2:4,3:4,4:4,5:4,6:4},{1:4,2:4,3:4,4:4,5:4,6:4});
+$('#miniExp').innerHTML=mini({3:3,2:1});
+buildWhy();
+show('home');
+})();
+</script>
