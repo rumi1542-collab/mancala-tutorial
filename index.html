@@ -226,6 +226,25 @@ button{font:inherit;color:inherit}
 .tbl th{color:var(--muted);font-weight:400}
 .src{font-size:14px}
 .src a{color:var(--accent)}
+
+/* 대결하기 */
+.setup{display:grid;gap:18px;max-width:640px;margin:14px auto 0;padding:20px 22px}
+.setup h2{font-family:var(--f-disp);font-weight:400;font-size:clamp(28px,5vw,36px);margin:0;line-height:1.2}
+.setup p{margin:0;color:var(--muted)}
+.opt{display:grid;gap:8px}
+.opt-t{font-weight:700}
+.seg{display:flex;flex-wrap:wrap;gap:10px}
+.seg button{flex:1 1 150px;display:grid;gap:2px;place-items:center;min-height:52px;padding:10px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:17px;line-height:1.3}
+.seg button small{font-weight:400;font-size:13px;color:var(--muted)}
+.seg button:hover{border-color:var(--accent)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.seg button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.btn.big{justify-content:center;min-height:56px;font-size:20px;padding:12px 22px}
+.well.turn{box-shadow:inset 0 5px 10px rgba(50,25,0,.5),0 0 0 3px var(--accent),0 0 14px 3px var(--accent-soft)}
+.well.opp.turn{cursor:pointer}
+.lab.active .cnt{background:var(--gold);color:var(--gold-fg)}
+.lab.active .pn{font-weight:700}
+.status.flip{transform:rotate(180deg);margin-top:0;text-align:center}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -245,7 +264,7 @@ button{font:inherit;color:inherit}
   <section id="home">
     <div class="hero">
       <h1>만칼라</h1>
-      <p>구슬을 한 칸씩 옮기며 배우는 보드게임이에요. 규칙을 따라 해 보고, 혼자 하는 수 탐구로 이어 가요.</p>
+      <p>구슬을 한 칸씩 옮기며 배우는 보드게임이에요. 규칙을 익히고, 수 탐구에 도전하고, 컴퓨터나 친구와 대결해 보세요.</p>
     </div>
     <div class="picks">
       <button class="pick" id="pickTut" type="button">
@@ -260,6 +279,36 @@ button{font:inherit;color:inherit}
         <p>프리턴을 이어 가며 모든 구슬을 만칼라통에 넣어요. 단계가 올라갈수록 수열이 원주율과 만나요.</p>
         <span class="go">탐구하기 →</span>
       </button>
+      <button class="pick" id="pickVs" type="button">
+        <div class="mini" id="miniVs" aria-hidden="true"></div>
+        <h2>대결하기</h2>
+        <p>배운 규칙으로 진짜 게임을 해요. 컴퓨터와 겨루거나, 한 기기에서 친구와 번갈아 해요.</p>
+        <span class="go">대결하기 →</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="vsSetup" hidden>
+    <div class="panel setup">
+      <h2>대결하기</h2>
+      <p>튜토리얼과 같은 규칙이에요. 구슬을 더 많이 모은 사람이 이겨요.</p>
+      <div class="opt"><div class="opt-t">누구와 할까요?</div>
+        <div class="seg" data-key="opp">
+          <button type="button" data-v="cpu" aria-pressed="true">컴퓨터와 대결</button>
+          <button type="button" data-v="two" aria-pressed="false">둘이서 대결<small>한 기기에서 번갈아</small></button>
+        </div></div>
+      <div class="opt" id="optLvl"><div class="opt-t">컴퓨터 난이도</div>
+        <div class="seg" data-key="lvl">
+          <button type="button" data-v="1" aria-pressed="false">쉬움<small>가끔 실수해요</small></button>
+          <button type="button" data-v="2" aria-pressed="true">보통<small>몇 수 앞을 봐요</small></button>
+          <button type="button" data-v="3" aria-pressed="false">어려움<small>깊이 생각해요</small></button>
+        </div></div>
+      <div class="opt"><div class="opt-t">먼저 시작</div>
+        <div class="seg" data-key="first">
+          <button type="button" data-v="m" id="firstM" aria-pressed="true">내가 먼저</button>
+          <button type="button" data-v="o" id="firstO" aria-pressed="false">컴퓨터가 먼저</button>
+        </div></div>
+      <button class="btn primary big" id="vsStart" type="button">게임 시작</button>
     </div>
   </section>
 
@@ -275,12 +324,14 @@ button{font:inherit;color:inherit}
         <button class="btn" id="resetBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>초기화</button>
         <button class="btn" id="undoBtn" type="button"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>되돌리기</button>
         <button class="btn" id="redoBtn" type="button"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>다시 실행</button>
+        <button class="btn" id="setBtn" type="button" hidden><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>설정 바꾸기</button>
       </div>
     </div>
 
     <div id="boardArea">
       <div class="stage" id="stage">
         <div class="tray" id="trayO"></div>
+        <div class="status flip" id="statusTop" aria-hidden="true" hidden></div>
         <div class="board" id="board"></div>
         <div class="tray" id="tray"></div>
         <div class="beads" id="beads"></div>
@@ -390,7 +441,7 @@ var undoBtn=$('#undoBtn'), redoBtn=$('#redoBtn'), resetBtn=$('#resetBtn');
 /* ---------- 판 DOM ---------- */
 function buildBoard(){
   var h='';
-  h+='<div class="lab" style="grid-column:1;grid-row:1"><span class="pn">상대 만칼라통</span><span class="cnt" data-c="os">0</span></div>';
+  h+='<div class="lab stl-o" style="grid-column:1;grid-row:1"><span class="pn">상대 만칼라통</span><span class="cnt" data-c="os">0</span></div>';
   h+='<div class="store" data-z="os" role="img" aria-label="상대 만칼라통" style="grid-column:1;grid-row:2/4"></div>';
   var j,n,col;
   for(j=1;j<=6;j++){
@@ -406,7 +457,7 @@ function buildBoard(){
       +'<button type="button" class="stp" data-n="'+n+'" data-d="-1" aria-label="'+n+'번 주머니 구슬 줄이기">▼</button></span></span></div>';
   }
   h+='<div class="store" data-z="ms" role="img" aria-label="내 만칼라통" style="grid-column:8;grid-row:2/4"></div>';
-  h+='<div class="lab" style="grid-column:8;grid-row:4"><span class="pn">내 만칼라통</span><span class="cnt" data-c="ms">0</span></div>';
+  h+='<div class="lab stl-m" style="grid-column:8;grid-row:4"><span class="pn">내 만칼라통</span><span class="cnt" data-c="ms">0</span></div>';
   boardEl.innerHTML=h;
   var els=boardEl.querySelectorAll('[data-z]');
   for(var i=0;i<els.length;i++){ slot[els[i].getAttribute('data-z')]=els[i]; }
@@ -533,7 +584,10 @@ function render(instant){
 }
 
 /* ---------- 표시 도우미 ---------- */
-function setStatus(t,tone){ statusEl.textContent=t; statusEl.className='status'+(tone?' '+tone:''); }
+function setStatus(t,tone){
+  statusEl.textContent=t; statusEl.className='status'+(tone?' '+tone:'');
+  if(mode==='vs'&&VS.opp==='two'){ var st=$('#statusTop'); st.textContent=t; st.className='status flip'+(tone?' '+tone:''); }
+}
 function setHints(list){
   M.forEach(function(z){
     var on=list.indexOf(z)>=0, w=slot[z];
@@ -699,10 +753,10 @@ function adjust(n,d){
 
 /* ---------- 탭 시작 ---------- */
 function show(which){
-  homeEl.hidden=which!=='home'; playEl.hidden=which!=='play';
-  if(which==='home') $('#app').classList.remove('fit');
+  homeEl.hidden=which!=='home'; playEl.hidden=which!=='play'; $('#vsSetup').hidden=which!=='setup';
+  if(which!=='play') $('#app').classList.remove('fit');
   $('#homeBtn').hidden=which==='home';
-  $('#crumb').textContent=which==='home'?'':(mode==='tut'?'튜토리얼':'1인 만칼라 수 탐구');
+  $('#crumb').textContent=which==='home'?'':(which==='setup'||mode==='vs'?'대결하기':(mode==='tut'?'튜토리얼':'1인 만칼라 수 탐구'));
 }
 function buildTabs(){
   var list=mode==='tut'?TUT:EXP;
@@ -712,8 +766,15 @@ function buildTabs(){
   }).join('');
   var sel=tabsEl.children[tab]; if(sel&&sel.scrollIntoView){ sel.scrollIntoView({inline:'nearest',block:'nearest'}); }
 }
+function leaveVs(){
+  tabsEl.hidden=false; $('#tray').hidden=false; $('#statusTop').hidden=true;
+  undoBtn.hidden=false; redoBtn.hidden=false; $('#setBtn').hidden=true;
+  $('.stl-o .pn').textContent='상대 만칼라통'; $('.stl-m .pn').textContent='내 만칼라통';
+  M.concat(O).forEach(function(z){ slot[z].classList.remove('turn'); });
+  $('.stl-o').classList.remove('active'); $('.stl-m').classList.remove('active');
+}
 function startTab(){
-  runId++; busy=false; closePopup(); nPause();
+  runId++; busy=false; closePopup(); nPause(); leaveVs();
   buildTabs();
   var isN=(mode==='exp'&&tab===6);
   boardArea.hidden=isN; nview.hidden=!isN; $('#controls').hidden=isN; $('#nCtl').hidden=!isN; $('#app').classList.toggle('fit',!isN);
@@ -877,8 +938,205 @@ function mini(mine,opp){
   return h;
 }
 
+/* ---------- 대결하기 ---------- */
+var VS={opp:'cpu',lvl:2,first:'m'}, cur='m', over=false, vsNote='', vsStep=300;
+/* 시계 반대 방향 한 바퀴: 내 주머니 6→1(0~5), 내 만칼라통(6), 상대 주머니 6→1(7~12), 상대 만칼라통(13) */
+var Z=['m6','m5','m4','m3','m2','m1','ms','o6','o5','o4','o3','o2','o1','os'];
+/* ===ENGINE START=== */
+function vsApply(s,pl,i){
+  var t=s.slice(), store=pl==='m'?6:13, skip=pl==='m'?13:6, n=t[i], pos=i, k;
+  t[i]=0;
+  while(n>0){ pos=(pos+1)%14; if(pos===skip) continue; t[pos]++; n--; }
+  var extra=(pos===store);
+  if(!extra){
+    var own=(pl==='m')?(pos<=5):(pos>=7&&pos<=12);
+    if(own&&t[pos]===1&&t[12-pos]>0){ t[store]+=t[12-pos]+1; t[pos]=0; t[12-pos]=0; }
+  }
+  var sm=0, so=0;
+  for(k=0;k<6;k++){ sm+=t[k]; so+=t[7+k]; }
+  var done=(sm===0||so===0);
+  if(done){ t[6]+=sm; t[13]+=so; for(k=0;k<6;k++){ t[k]=0; t[7+k]=0; } }
+  return {t:t,extra:extra&&!done,over:done};
+}
+function vsMoves(s,pl){
+  var r=[], a=pl==='m'?5:12, b=pl==='m'?0:7;
+  for(var i=a;i>=b;i--){ if(s[i]>0) r.push(i); }
+  return r;
+}
+function vsEval(s,cpu){
+  var d=(cpu==='m')?(s[6]-s[13]):(s[13]-s[6]);
+  return d;
+}
+function vsFinal(s,cpu){ var d=vsEval(s,cpu); return d+(d>0?100:(d<0?-100:0)); }
+var vsDeadline=0, vsNodes=0;
+function vsSearch(s,pl,d,al,be,cpu){
+  if((++vsNodes&2047)===0&&Date.now()>vsDeadline) throw new Error('timeout');
+  var ms=vsMoves(s,pl);
+  if(d<=0||!ms.length) return vsEval(s,cpu);
+  var mx=(pl===cpu), best=mx?-1e9:1e9, k, r, v, nx;
+  for(k=0;k<ms.length;k++){
+    r=vsApply(s,pl,ms[k]);
+    if(r.over) v=vsFinal(r.t,cpu);
+    else { nx=r.extra?pl:(pl==='m'?'o':'m'); v=vsSearch(r.t,nx,r.extra?d:d-1,al,be,cpu); }
+    if(mx){ if(v>best) best=v; if(best>al) al=best; } else { if(v<best) best=v; if(best<be) be=best; }
+    if(al>=be) break;
+  }
+  return best;
+}
+function vsRoot(s,pl,m,d){
+  var r=vsApply(s,pl,m);
+  if(r.over) return vsFinal(r.t,pl);
+  return vsSearch(r.t,r.extra?pl:(pl==='m'?'o':'m'),r.extra?d:d-1,-1e9,1e9,pl);
+}
+function vsPick(s,pl,lvl){
+  var mv=vsMoves(s,pl), sc, k, best, cands;
+  if(mv.length<=1) return mv[0];
+  function argmax(list,scores,rand){
+    var m=-1e9; scores.forEach(function(v){ if(v>m) m=v; });
+    var c=list.filter(function(x,i){ return scores[i]===m; });
+    return rand?c[Math.floor(Math.random()*c.length)]:c[0];
+  }
+  vsNodes=0;
+  if(lvl===1){
+    if(Math.random()<0.55) return mv[Math.floor(Math.random()*mv.length)];
+    sc=mv.map(function(m){ var r=vsApply(s,pl,m); return (pl==='m'?r.t[6]-r.t[13]:r.t[13]-r.t[6])+(r.extra?2:0); });
+    return argmax(mv,sc,true);
+  }
+  if(lvl===2){
+    vsDeadline=Date.now()+3000;
+    try{ sc=mv.map(function(m){ return vsRoot(s,pl,m,4); }); return argmax(mv,sc,true); }
+    catch(e){ return mv[0]; }
+  }
+  vsDeadline=Date.now()+900; best=mv[0];
+  for(var d=2;d<=16;d++){
+    try{
+      sc=mv.map(function(m){ return vsRoot(s,pl,m,d); });
+      best=argmax(mv,sc,false);
+      mv=[best].concat(mv.filter(function(x){return x!==best;}));
+    }catch(e){ break; }
+  }
+  return best;
+}
+/* ===ENGINE END=== */
+function vsState(){ return Z.map(cnt); }
+var VSN={cpu:{m:'내',o:'컴퓨터'},two:{m:'아래 플레이어',o:'위 플레이어'}};
+function vsWho(pl){ return VSN[VS.opp][pl]; }
+function vsHuman(){ return !(VS.opp==='cpu'&&cur==='o'); }
+function vsMark(){
+  M.concat(O).forEach(function(z){
+    slot[z].classList.toggle('turn',!over&&z.charAt(0)===cur&&vsHuman()&&cnt(z)>0&&!busy);
+  });
+  $('.stl-m').classList.toggle('active',!over&&cur==='m');
+  $('.stl-o').classList.toggle('active',!over&&cur==='o');
+}
+function vsSetupUI(){
+  var two=VS.opp==='two';
+  Array.prototype.forEach.call(document.querySelectorAll('#vsSetup .seg button'),function(b){
+    var key=b.parentNode.getAttribute('data-key'), v=b.getAttribute('data-v');
+    b.setAttribute('aria-pressed',String(String(VS[key])===v));
+  });
+  $('#optLvl').hidden=two;
+  $('#firstM').textContent=two?'아래 플레이어 먼저':'내가 먼저';
+  $('#firstO').textContent=two?'위 플레이어 먼저':'컴퓨터가 먼저';
+}
+function startVs(){
+  runId++; busy=false; over=false; closePopup(); nPause();
+  mode='vs'; show('play');
+  boardArea.hidden=false; nview.hidden=true; $('#controls').hidden=false; $('#nCtl').hidden=true; $('#app').classList.add('fit');
+  tabsEl.hidden=true; boardEl.classList.remove('editable'); setHints([]);
+  $('#tray').hidden=true; $('#trayO').hidden=true;
+  undoBtn.hidden=true; redoBtn.hidden=true; $('#setBtn').hidden=false;
+  var two=VS.opp==='two';
+  $('#statusTop').hidden=!two;
+  $('.stl-o .pn').textContent=two?'위 플레이어':'컴퓨터';
+  $('.stl-m .pn').textContent=two?'아래 플레이어':'내 만칼라통';
+  $('#infoT').textContent='대결하기';
+  $('#infoP').textContent=two?'둘이서 대결 · 한 기기에서 번갈아 해요. 자기 쪽 주머니를 눌러 구슬을 옮겨요.':'컴퓨터와 대결 · 난이도 '+['','쉬움','보통','어려움'][VS.lvl]+'. 아래쪽이 내 주머니예요.';
+  applySpec(SP_FULL); hist=[]; hi=0;
+  cur=VS.first; vsNote='';
+  render(true); updateControls();
+  vsTurn();
+}
+async function vsTurn(){
+  var my=runId; if(over) return;
+  vsMark();
+  var pre=vsNote?vsNote+' ':'';
+  if(VS.opp==='cpu'&&cur==='o'){
+    busy=true; updateControls(); vsMark();
+    setStatus(pre+'컴퓨터가 생각하고 있어요…','');
+    await sleep(800); if(my!==runId) return;
+    var mv=vsPick(vsState(),'o',VS.lvl);
+    flash(Z[mv]); await sleep(550); if(my!==runId) return;
+    vsPlay('o',mv);
+  } else {
+    busy=false; updateControls(); vsMark();
+    setStatus(pre+(VS.opp==='cpu'?'내 차례예요. 아래쪽 내 주머니를 눌러 보세요.':vsWho(cur)+' 차례예요. 자기 쪽 주머니를 눌러 보세요.'),'');
+  }
+}
+async function vsPlay(pl,zi){
+  var my=runId; busy=true; closePopup(); updateControls(); vsMark();
+  var ids=idIn(Z[zi]).slice().sort(function(a,b){return beads[b].o-beads[a].o;});
+  var store=pl==='m'?6:13, skip=pl==='m'?13:6, pos=zi, i;
+  for(i=0;i<ids.length;i++){
+    pos=(pos+1)%14; if(pos===skip) pos=(pos+1)%14;
+    moveBead(ids[i],Z[pos]); render();
+    await sleep(vsStep); if(my!==runId) return;
+  }
+  var note=vsWho(pl)+'가 구슬 '+ids.length+'개를 옮겼어요.', extra=false;
+  var own=(pl==='m')?(pos<=5):(pos>=7&&pos<=12);
+  if(pos===store){ extra=true; flash(Z[store]); }
+  else if(own&&cnt(Z[pos])===1&&cnt(Z[12-pos])>0){
+    var oz=Z[12-pos], lz=Z[pos];
+    flash(lz); flash(oz); setStatus(note+' 빈 주머니에 마지막 구슬이 들어갔어요!','ok');
+    await sleep(900); if(my!==runId) return;
+    var grab=idIn(oz).concat(idIn(lz)), g;
+    for(g=0;g<grab.length;g++){ moveBead(grab[g],Z[store]); render(); await sleep(380); if(my!==runId) return; }
+    flash(Z[store]); note+=' 맞은편 구슬 '+(grab.length-1)+'개를 가져왔어요!';
+  }
+  var sm=0, so=0;
+  M.forEach(function(z){ sm+=cnt(z); }); O.forEach(function(z){ so+=cnt(z); });
+  if(sm===0||so===0){
+    var rest=[], r2;
+    M.forEach(function(z){ idIn(z).forEach(function(id){ rest.push([id,'ms']); }); });
+    O.forEach(function(z){ idIn(z).forEach(function(id){ rest.push([id,'os']); }); });
+    setStatus(note+' 한쪽 주머니가 모두 비어 게임이 끝나요. 남은 구슬은 각자 만칼라통으로 가요.','');
+    await sleep(900); if(my!==runId) return;
+    for(r2=0;r2<rest.length;r2++){ moveBead(rest[r2][0],rest[r2][1]); render(); await sleep(260); if(my!==runId) return; }
+    vsFinish(); return;
+  }
+  if(extra) note+=' 마지막 구슬이 만칼라통에 들어가서 한 번 더 해요!'; else cur=(pl==='m')?'o':'m';
+  vsNote=note;
+  vsTurn();
+}
+function vsFinish(){
+  over=true; busy=false; updateControls(); vsMark();
+  var a=cnt('ms'), b=cnt('os'), two=VS.opp==='two', title, sub;
+  var nm=two?'아래 플레이어':'나', no=two?'위 플레이어':'컴퓨터';
+  if(a>b) title=two?'아래 플레이어 승리!':'내가 이겼어요!';
+  else if(b>a) title=two?'위 플레이어 승리!':'컴퓨터가 이겼어요';
+  else title='비겼어요';
+  sub=nm+' '+a+' : '+no+' '+b;
+  setStatus('게임이 끝났어요. '+sub,'ok');
+  flash(a>=b?'ms':'os');
+  showPopup('end',title,sub,{sticky:true,buttons:[
+    {label:'설정 바꾸기',fn:function(){ runId++; mode='home'; show('setup'); vsSetupUI(); }},
+    {label:'다시 하기',primary:true,fn:function(){ startVs(); }}
+  ]});
+}
+function vsClick(z){
+  if(busy||over) return;
+  var pl=z.charAt(0);
+  if(pl!==cur){
+    showPopup('warn',(VS.opp==='cpu'?'컴퓨터 쪽 주머니예요.':'지금은 '+vsWho(cur)+' 차례예요.'),(VS.opp==='cpu'?'아래쪽 내 주머니를 눌러 주세요.':''),{ms:2000});
+    return;
+  }
+  if(!cnt(z)){ setStatus('빈 주머니예요. 구슬이 있는 주머니를 눌러 주세요.','warn'); return; }
+  vsPlay(pl,Z.indexOf(z));
+}
+
 /* ---------- 이벤트 ---------- */
 boardEl.addEventListener('click',function(e){
+  if(mode==='vs'){ var vw=e.target.closest('.well'); if(vw) vsClick(vw.getAttribute('data-z')); return; }
   var w=e.target.closest('.well:not(.opp)'); if(w){ doMove(w.getAttribute('data-z')); return; }
   if(e.target.closest('.well.opp')){ oppClick(); return; }
   var s=e.target.closest('.stp'); if(s){ adjust(Number(s.getAttribute('data-n')),Number(s.getAttribute('data-d'))); }
@@ -887,7 +1145,15 @@ tabsEl.addEventListener('click',function(e){
   var b=e.target.closest('.tabbtn'); if(!b) return;
   tab=Number(b.getAttribute('data-i')); startTab();
 });
-resetBtn.addEventListener('click',function(){ startTab(); });
+resetBtn.addEventListener('click',function(){ if(mode==='vs') startVs(); else startTab(); });
+$('#setBtn').addEventListener('click',function(){ runId++; busy=false; closePopup(); mode='home'; show('setup'); vsSetupUI(); });
+$('#pickVs').addEventListener('click',function(){ mode='home'; show('setup'); vsSetupUI(); });
+$('#vsStart').addEventListener('click',startVs);
+$('#vsSetup').addEventListener('click',function(e){
+  var b=e.target.closest('.seg button'); if(!b) return;
+  var key=b.parentNode.getAttribute('data-key'), v=b.getAttribute('data-v');
+  VS[key]=(key==='lvl')?Number(v):v; vsSetupUI();
+});
 undoBtn.addEventListener('click',undo);
 redoBtn.addEventListener('click',redo);
 $('#nRange').addEventListener('input',function(){ if(!nTimer) nMid=true; drawN(); });
@@ -906,6 +1172,7 @@ window.addEventListener('resize',function(){ if(mode!=='home'&&!boardArea.hidden
 buildBoard(); initBeads();
 $('#miniTut').innerHTML=mini({1:4,2:4,3:4,4:4,5:4,6:4},{1:4,2:4,3:4,4:4,5:4,6:4});
 $('#miniExp').innerHTML=mini({3:3,2:1});
+$('#miniVs').innerHTML=mini({1:3,2:5,3:2,4:4,5:6,6:1},{1:4,2:2,3:5,4:3,5:1,6:6});
 buildWhy();
 show('home');
 })();
